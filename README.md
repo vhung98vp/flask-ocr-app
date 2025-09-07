@@ -29,8 +29,8 @@ flask-ocr-app
 
 1. **Clone the repository:**
    ```
-   git clone <repository-url>
-   cd flask-ocr-service
+   git clone https://github.com/vhung98vp/flask-ocr-app
+   cd flask-ocr-app
    ```
 
 2. **Create a virtual environment:**
