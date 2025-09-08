@@ -68,7 +68,7 @@ flask-ocr-app
 
 ### Kafka Integration
 
-- The service listens for messages on a Kafka topic containing S3 folder paths. Upon receiving a message, it lists the files in the specified S3 bucket, processes them for OCR, and sends the results to a new Kafka topic.
+- The service listens for messages on a Kafka topic containing S3 folder paths. Upon receiving a message, it lists the files in the specified S3 bucket, processes them for OCR, and sends the results to a new Kafka topic. To use it, change APP_MODE to kafka.
 
 ## License
 

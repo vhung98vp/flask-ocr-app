@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 APP = {
     'host': os.environ.get('APP_HOST', '0.0.0.0'),
-    'port': int(os.environ.get('APP_PORT', 5001))
+    'port': int(os.environ.get('APP_PORT', 5001)),
+    'mode': os.environ.get('APP_MODE', 'api').lower()
 }
 
 KAFKA = {

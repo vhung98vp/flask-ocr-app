@@ -34,5 +34,7 @@ def upload_file():
     return jsonify(result), 200
 
 if __name__ == '__main__':
-    app.run(host=APP['host'], port=APP['port'])
-    start_kafka_consumer()
+    if APP['mode'] == 'api':
+        app.run(host=APP['host'], port=APP['port'])
+    else:
+        start_kafka_consumer()
