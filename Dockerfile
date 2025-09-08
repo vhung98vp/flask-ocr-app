@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install --no-cache-dir torch==2.8.0+cpu torchvision==0.23.0+cpu torchaudio==2.8.0+cpu \
+    --index-url https://download.pytorch.org/whl/cpu
 
 COPY /src /app
 WORKDIR /app
