@@ -9,6 +9,11 @@ from ocr.processor import process_file
 
 app = Flask(__name__)
 
+@app.route('/manage/health', methods=['GET'])
+def manage_health():
+    return jsonify({"status": True}), 200
+
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
