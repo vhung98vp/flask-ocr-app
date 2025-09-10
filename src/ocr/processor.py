@@ -6,7 +6,7 @@ from pdf2image import convert_from_path
 from .model import OCRModel
 from .utils import get_lines_from_thresh, get_table_grid, get_table_ids
 from .pattern import filter_ids
-from s3 import Client
+from s3 import WClient
 from config import logger
 
 ocr_model = OCRModel()
@@ -144,7 +144,7 @@ def process_file(file_path, detect_type=2, s3_key=""):
         first_page = cv2.imread(file_path)
         title = ocr_model.ocr_title(first_page)
         if s3_key:
-            Client.upload_file(file_path, s3_key)
+            upload_key = WClient.upload_file(file_path, s3_key)
 
     elif ext.lower() == '.pdf':
         # Make output dir
@@ -157,7 +157,7 @@ def process_file(file_path, detect_type=2, s3_key=""):
         title = ocr_model.ocr_title(first_page)
         if s3_key:
             avatar_key = os.path.join(os.path.dirname(s3_key), f"{filename}_avatar.png")
-            Client.upload_file(file_path, avatar_key)
+            upload_key = WClient.upload_file(file_path, avatar_key)
         # Clean output dir local
         for f in os.listdir(output_dir):
             os.remove(os.path.join(output_dir, f))
@@ -168,5 +168,6 @@ def process_file(file_path, detect_type=2, s3_key=""):
     return {
         "file_name": filename,
         "title": title,
-        "content": results
+        "content": results,
+        "avatar": upload_key if s3_key else ""
     }

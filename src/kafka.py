@@ -5,7 +5,7 @@ import os
 from confluent_kafka import Consumer, Producer
 from config import logger, KAFKA, KAFKA_CONSUMER_CONFIG, KAFKA_PRODUCER_CONFIG
 from ocr.processor import process_file
-from s3 import Client
+from s3 import RClient
 
 
 # Kafka setup
@@ -15,9 +15,9 @@ consumer.subscribe([KAFKA['input_topic']])
 
 
 def process_s3_folder(s3_folder_path):
-    file_keys = Client.list_files(s3_folder_path)
+    file_keys = RClient.list_files(s3_folder_path)
     for key in file_keys:
-        local_file_path = Client.download_file(key)
+        local_file_path = RClient.download_file(key)
         result = process_file(local_file_path, 2, key)
         send_output_to_kafka(result)
         if os.path.exists(local_file_path):

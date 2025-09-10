@@ -36,12 +36,19 @@ KAFKA_PRODUCER_CONFIG = {
     'bootstrap.servers': KAFKA['brokers']
 }
 
-S3_CONFIG = {
-    'endpoint': os.environ.get('S3_ENDPOINT'),
-    'access_key': os.environ.get('S3_ACCESS_KEY_ID'),
-    'secret_key': os.environ.get('S3_SECRET_ACCESS_KEY'),
-    'bucket_name': os.environ.get('S3_BUCKET_NAME'),
-    'upload_folder': os.environ.get('S3_UPLOAD_FOLDER', 'avatar')
+S3_READ_CONFIG = {
+    'endpoint': os.environ.get('S3_READ_ENDPOINT'),
+    'access_key': os.environ.get('S3_READ_ACCESS_KEY_ID'),
+    'secret_key': os.environ.get('S3_READ_SECRET_ACCESS_KEY'),
+    'bucket_name': os.environ.get('S3_READ_BUCKET_NAME')
+}
+
+S3_WRITE_CONFIG = {
+    'endpoint': os.environ.get('S3_WRITE_ENDPOINT'),
+    'access_key': os.environ.get('S3_WRITE_ACCESS_KEY_ID'),
+    'secret_key': os.environ.get('S3_WRITE_SECRET_ACCESS_KEY'),
+    'bucket_name': os.environ.get('S3_WRITE_BUCKET_NAME'),
+    'upload_folder': os.environ.get('S3_WRITE_FOLDER', 'avatar')
 }
 
 VIETOCR_CONFIG = {
