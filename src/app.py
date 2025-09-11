@@ -24,14 +24,19 @@ def upload_file():
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
+
+    detect_type = request.args.get('type', '2')
+    if detect_type not in ['0', '1', '2']:
+        return jsonify({"error": "Invalid type. Must be 0, 1, or 2."}), 400
     
     # Process uploaded file
     filename = secure_filename(file.filename)
     file_path = os.path.join(tempfile.gettempdir(), filename)
+    
     try:
-        logger.info(f"Uploading file to {file_path}")
+        logger.info(f"Process type {detect_type}. Uploading file to {file_path}...")
         file.save(file_path)
-        result = process_file(file_path)
+        result = process_file(file_path, int(detect_type))
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally: # Clean file

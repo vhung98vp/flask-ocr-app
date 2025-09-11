@@ -23,7 +23,7 @@ APP = {
 
 KAFKA = {
     'brokers': os.environ.get('KAFKA_BOOTSTRAP_SERVER'),
-    'consumer_group': os.environ.get('KAFKA_CONSUMER_GROUP', 'default_consumer_group'),
+    'consumer_group': os.environ.get('KAFKA_CONSUMER_GROUP', 'default'),
     'consumer_timeout': float(os.environ.get('KAFKA_CONSUMER_TIMEOUT', 1)),
     'auto_offset_reset': os.environ.get('KAFKA_AUTO_OFFSET_RESET', 'earliest'),
     'input_topic': os.environ.get('KAFKA_INPUT_TOPIC'),
@@ -54,18 +54,4 @@ S3_WRITE_CONFIG = {
     'secret_key': os.environ.get('S3_WRITE_SECRET_ACCESS_KEY'),
     'bucket_name': os.environ.get('S3_WRITE_BUCKET_NAME'),
     'upload_folder': os.environ.get('S3_WRITE_FOLDER', 'avatar')
-}
-
-VIETOCR_CONFIG = {
-    'base_config': os.environ.get('VIETOCR_BASE_CONFIG_PATH'),
-    'transformer_config': os.environ.get('VIETOCR_TRANSFORMER_CONFIG_PATH'),
-    'model_weight': os.environ.get('VIETOCR_MODEL_WEIGHT_PATH'),
-    'device': os.environ.get('VIETOCR_DEVICE', 'cpu')
-}
-
-PADDLE_CONFIG = {
-    'language': os.environ.get('PADDLEOCR_LANGUAGE', 'en'),
-    'det_model_dir': os.environ.get('PADDLEOCR_DET_MODEL_DIR'),
-    'rec_model_dir': os.environ.get('PADDLEOCR_REC_MODEL_DIR'),
-    'cls_model_dir': os.environ.get('PADDLEOCR_CLS_MODEL_DIR')
 }
