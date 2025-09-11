@@ -10,8 +10,10 @@ RUN apt-get update && apt-get install -y \
 
 COPY requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
-RUN pip install --no-cache-dir torch==2.8.0+cpu torchvision==0.23.0+cpu torchaudio==2.8.0+cpu \
+RUN pip install --no-cache-dir torch==2.8.0+cpu torchvision==0.23.0 torchaudio==2.8.0 \
     --index-url https://download.pytorch.org/whl/cpu
+RUN python -c "from vietocr.tool.config import Cfg; from vietocr.tool.predictor import Predictor; config = Cfg.load_config_from_name('vgg_transformer'); predictor = Predictor(config)"
+RUN python -c "from paddleocr import PaddleOCR; ocr = PaddleOCR(lang='en', use_angle_cls=True)"
 
 COPY /src /app
 WORKDIR /app

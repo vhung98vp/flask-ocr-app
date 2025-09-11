@@ -3,10 +3,10 @@ import time
 import uuid
 import os
 from confluent_kafka import Consumer, Producer
-from config import logger, KAFKA, KAFKA_CONSUMER_CONFIG, KAFKA_PRODUCER_CONFIG
+from config import get_logger, KAFKA, KAFKA_CONSUMER_CONFIG, KAFKA_PRODUCER_CONFIG
 from ocr.processor import process_file
 from s3 import RClient
-
+logger = get_logger(__name__)
 
 # Kafka setup
 producer = Producer(KAFKA_PRODUCER_CONFIG)

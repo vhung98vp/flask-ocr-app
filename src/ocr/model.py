@@ -6,32 +6,18 @@ from paddleocr import PaddleOCR
 from vietocr.tool.predictor import Predictor
 from vietocr.tool.config import Cfg
 from .utils import get_boxed_image
-from config import VIETOCR_CONFIG, PADDLE_CONFIG
 
 
-def vietocr_config():
-    try:
-        # Try to use local model
-        config = Cfg.load_config_from_file(VIETOCR_CONFIG['base_config'])
-        config.update(Cfg.load_config_from_file(VIETOCR_CONFIG['transformer_config']))
-        config['weights'] = VIETOCR_CONFIG['model_weight']
-    except Exception as e:
-        config = Cfg.load_config_from_name('vgg_transformer')
-
-    config['device'] = VIETOCR_CONFIG['device']
-    return config
+def vietocr_predictor():
+    config = Cfg.load_config_from_name('vgg_transformer')
+    config['device'] = 'cpu'
+    return Predictor(config)
 
 
 class OCRModel:
     def __init__(self):
-        self.paddle_ocr = PaddleOCR(
-                        use_angle_cls=True,
-                        lang=PADDLE_CONFIG['language'], 
-                        det_model_dir=PADDLE_CONFIG['det_model_dir'],
-                        rec_model_dir=PADDLE_CONFIG['rec_model_dir'],
-                        cls_model_dir=PADDLE_CONFIG['cls_model_dir']
-                    )
-        self.viet_ocr = Predictor(vietocr_config())
+        self.paddle_ocr = PaddleOCR(use_angle_cls=True, lang='en')
+        self.viet_ocr = vietocr_predictor()
 
     def vietocr_text(self, img):
         pil_img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))

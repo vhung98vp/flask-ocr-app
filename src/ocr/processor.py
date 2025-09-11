@@ -7,7 +7,9 @@ from .model import OCRModel
 from .utils import get_lines_from_thresh, get_table_grid, get_table_ids
 from .pattern import filter_ids
 from s3 import WClient
-from config import logger
+from config import get_logger
+logger = get_logger(__name__)
+
 
 ocr_model = OCRModel()
     

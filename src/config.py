@@ -1,15 +1,23 @@
 import os
+import sys
 import logging
 from dotenv import load_dotenv
 
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(threadName)s - %(message)s')
-logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s - %(levelname)s - %(name)s - %(message)s', 
+                    handlers=[logging.StreamHandler(sys.stdout)]
+                )
+
+def get_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.INFO)
+    return logger
 
 APP = {
-    'host': os.environ.get('APP_HOST', '0.0.0.0'),
-    'port': int(os.environ.get('APP_PORT', 5001)),
+    'host': os.environ.get('APP_HOST', 'localhost'),
+    'port': int(os.environ.get('APP_PORT', 5000)),
     'mode': os.environ.get('APP_MODE', 'api').lower()
 }
 

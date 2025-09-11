@@ -3,11 +3,13 @@ import os
 import tempfile
 from werkzeug.utils import secure_filename
 from kafka import start_kafka_consumer
-from config import APP
+from config import APP, get_logger
 from ocr.processor import process_file
+logger = get_logger(__name__)
 
 
 app = Flask(__name__)
+app.json.ensure_ascii = False
 
 @app.route('/manage/health', methods=['GET'])
 def manage_health():
@@ -27,6 +29,7 @@ def upload_file():
     filename = secure_filename(file.filename)
     file_path = os.path.join(tempfile.gettempdir(), filename)
     try:
+        logger.info(f"Uploading file to {file_path}")
         file.save(file_path)
         result = process_file(file_path)
     except Exception as e:
