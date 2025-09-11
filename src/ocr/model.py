@@ -65,8 +65,13 @@ class OCRModel:
         if not candidates:
             return "untitled"
         
-        # sort: largest height, closest to center, lower on page
-        candidates.sort(key=lambda x: (not x[0], -x[1], x[2], x[3]))
-        result = candidates[:3]
-        result.sort(key=lambda x: x[3])
+        # pick best candidate by score
+        best = min(candidates, key=lambda x: (not x[0], -x[1], x[2], x[3]))
+
+        # find rows below best
+        below = [c for c in candidates if c[3] > best[3]]
+        below.sort(key=lambda x: x[3])  # sort only by vertical position
+
+        # final result: best + up to next 2 lines
+        result = [best] + below[:2]
         return [c[4].strip() for c in result]
