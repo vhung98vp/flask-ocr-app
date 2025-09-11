@@ -63,6 +63,7 @@ flask-ocr-app
 
 - **POST /upload**
   - Upload a PDF or image file for OCR processing.
+  - Params: type (0 - no table detection; 1 - detect tables only; 2 - detect tables and text)
   - Request Body: Form-data with the file.
   - Response: JSON containing the file path, file name, title, data inside, and detected IDs.
 
