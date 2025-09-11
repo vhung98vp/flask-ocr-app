@@ -66,12 +66,14 @@ class OCRModel:
             return "untitled"
         
         # pick best candidate by score
-        best = min(candidates, key=lambda x: (not x[0], -x[1], x[2], x[3]))
-
-        # find rows below best
-        below = [c for c in candidates if c[3] > best[3]]
-        below.sort(key=lambda x: x[3])  # sort only by vertical position
-
-        # final result: best + up to next 2 lines
-        result = [best] + below[:2]
-        return [c[4].strip() for c in result]
+        max_height = max(c[1] for c in candidates) or 1
+        best = sorted(
+            candidates,
+            key=lambda c: (
+                (1 - c[0]) * 0.25     # prefer uppercase (1=upper → score 0, else penalty)
+                + (1 - (c[1] / max_height)) * 0.25  # prefer taller boxes
+                + c[2] * 0.5         # prefer closer to center
+            )
+        )[:3]
+        best.sort(key=lambda x: x[3])
+        return [c[4].strip() for c in best]
