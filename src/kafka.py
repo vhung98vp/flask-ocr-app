@@ -27,10 +27,9 @@ def process_s3_folder(s3_folder_path):
 def process_message(msg_key, msg):
     start_time = time.time()
     try:
-        # data = json.loads(msg)
-        s3_folder_path = msg.value().decode('utf-8')
-        process_s3_folder(s3_folder_path)
-        logger.info(f"Processed data for folder: {s3_folder_path}.")
+        folder = json.loads(msg).get("folder")
+        process_s3_folder(folder)
+        logger.info(f"Processed data for folder: {folder}.")
 
     except Exception as e:
         logger.exception(f"Error while processing message {msg_key}:{msg}: {e}")
