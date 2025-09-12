@@ -167,9 +167,18 @@ def process_file(file_path, detect_type=2, s3_key=""):
     else:
         logger.error(f"Unsupported file type: {file_path}")
 
-    return {
-        "file_name": filename,
-        "title": title,
-        "content": results,
-        "avatar": upload_key if s3_key else ""
-    }
+    if s3_key:
+        logger.info(f"Uploaded avatar to {upload_key}")
+        return {
+            "file_name": filename,
+            "title": title,
+            "content": results,
+            "s3_path": s3_key,
+            "avatar": upload_key
+        }
+    else:
+        return {
+            "file_name": filename,
+            "title": title,
+            "content": results,
+        }

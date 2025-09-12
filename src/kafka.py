@@ -13,23 +13,31 @@ producer = Producer(KAFKA_PRODUCER_CONFIG)
 consumer = Consumer(KAFKA_CONSUMER_CONFIG)
 consumer.subscribe([KAFKA['input_topic']])
 
-
-def process_s3_folder(s3_folder_path):
-    file_keys = RClient.list_files(s3_folder_path)
-    for key in file_keys:
-        local_file_path = RClient.download_file(key)
-        result = process_file(local_file_path, 2, key)
-        send_output_to_kafka(result)
-        if os.path.exists(local_file_path):
-            os.remove(local_file_path)
+def process_s3_file(key, process_type):
+    local_file_path = RClient.download_file(key)
+    result = process_file(local_file_path, process_type, key)
+    send_output_to_kafka(result)
+    if os.path.exists(local_file_path):
+        os.remove(local_file_path)
 
 
 def process_message(msg_key, msg):
     start_time = time.time()
     try:
-        folder = json.loads(msg).get("folder")
-        process_s3_folder(folder)
-        logger.info(f"Processed data for folder: {folder}.")
+        data = json.loads(msg)
+        folder = data.get("folder")
+        file = data.get("file")
+        type = data.get("type", 2)
+        if folder:
+            file_keys = RClient.list_files(folder)
+            for file in file_keys:
+                process_s3_file(file, type)
+            logger.info(f"Processed data for folder: {folder}.")
+        elif file:
+            process_s3_file(file, type)
+            logger.info(f"Processed data for file: {file}.")
+        else:
+            raise ValueError(f"Invalid input file/folder: {data}")
 
     except Exception as e:
         logger.exception(f"Error while processing message {msg_key}:{msg}: {e}")
