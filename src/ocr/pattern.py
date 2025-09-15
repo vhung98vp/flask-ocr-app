@@ -8,7 +8,7 @@ patterns = {
     "ElectricWaterId": r"^[A-Z0-9]{5,10}\d{5}$",
     "BankAccount": r"^\d{9,16}$",
     "Email": r"^[\w\.-]+@[\w\.-]+\.\w{2,}$",
-    "Passport": r"^[A-Z]\d{7}$",
+    "Passport": r"^[A-Z]\d{7,8}$",
     "SocialInsurance": r"^\d{10}$",
     "HealthInsurance": r"^[A-Z]{2}\d{13}$",
 }
