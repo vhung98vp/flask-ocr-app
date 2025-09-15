@@ -13,9 +13,11 @@ producer = Producer(KAFKA_PRODUCER_CONFIG)
 consumer = Consumer(KAFKA_CONSUMER_CONFIG)
 consumer.subscribe([KAFKA['input_topic']])
 
-def process_s3_file(key, detect_type):
+def process_s3_file(key, detect_type, folder=None):
     local_file_path = RClient.download_file(key)
     result = process_file(local_file_path, detect_type, key)
+    if folder: 
+        result['folder'] = folder
     send_output_to_kafka(result)
     if os.path.exists(local_file_path):
         os.remove(local_file_path)
@@ -33,7 +35,7 @@ def process_message(msg_key, msg):
         if folder:
             file_keys = RClient.list_files(folder)
             for file_key in file_keys:
-                process_s3_file(file_key, int(detect_type))
+                process_s3_file(file_key, int(detect_type), folder)
             logger.info(f"Processed data for folder: {folder}.")
         elif file_key:
             process_s3_file(file_key, int(detect_type))
