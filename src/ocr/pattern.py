@@ -7,10 +7,10 @@ patterns = {
     "Phone": r"^(?:0|84|\+84)\d{9}$",
     "LicensePlateNumber": r"^(?:\d{2}(?:[A-Z]{1,2}|\d{1,2})(?:-)?\d{4,5}|\d{2}[A-Z](?:[-.]?\d{3,5}))$",
     "TaxCode": r"^\d{10}(?:-\d{3})?$",
-    "ElectricWaterId": r"^[A-Z0-9]{5,10}\d{5}$",
-    "OtherIds": r"^\d{11,18}$",
     "SocialInsurance": r"^\d{10}$",
     "HealthInsurance": r"^[A-Z]{2}\d{13}$",
+    "ElectricWaterId": r"^[A-Z0-9]{5,10}\d{5}$",
+    "OtherIds": r"^\d{11,18}$",
 }
 
 
