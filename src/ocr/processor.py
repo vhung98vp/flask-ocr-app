@@ -67,10 +67,9 @@ def process_contour(cnt, img, page_idx, table_idx):
     return {
         "page": page_idx,
         "table": table_idx,
-        "header": header_text,
-        "footer": footer_text,
-        "cells": cell_info,
-        "ids": get_table_ids(cell_info)
+        "header": '\n'.join(header_text),
+        "footer": '\n'.join(footer_text),
+        "cells": cell_info
     }
 
 
@@ -83,9 +82,8 @@ def process_image(img_path, page_idx, detect_type):
         logger.info(f"Total processing time for image {img_path} (s): {time.time()-start:.2f}")
         return [{
             "page": page_idx,
-            "text": text,
-            "ids": filter_ids(text)
-        }]
+            "text": text
+        }], filter_ids(text), []
 
     # Detect tables
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -97,13 +95,17 @@ def process_image(img_path, page_idx, detect_type):
     horizontal, vertical = get_lines_from_thresh(thresh, split_ratio=15)
     mask = cv2.add(horizontal, vertical)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    results = []
+    results, ids, table_ids = [], [], []
     table_idx = 0
     for cnt in contours:
         result = process_contour(cnt, img, page_idx, table_idx)
         if result:
             results.append(result)
             table_idx += 1
+            # Add detected ids in table
+            tid = get_table_ids(result['cells'])
+            table_ids.extend(tid)
+            ids.extend([i for row in tid for i in row if i])
     
     # Detect text outside tables
     if detect_type == 2:
@@ -116,23 +118,26 @@ def process_image(img_path, page_idx, detect_type):
 
         results.append({
             "page": page_idx,
-            "text": text,
-            "ids": filter_ids(text)
+            "text": text
         })
+        ids.extend(filter_ids(text))
     
     logger.info(f"Total processing time for image {img_path} (s): {time.time()-start:.2f}")
-    return results
+    return results, ids, table_ids
 
 
 def process_pdf(pdf_path, output_dir, detect_type):
     pages = convert_from_path(pdf_path, dpi=300)
-    all_results = []
+    results, ids, table_ids = [], [], []
     for page_idx, page in enumerate(pages):
         page_path = os.path.join(output_dir, f"page_{page_idx}.png")
         page.save(page_path, "PNG")
-        page_results = process_image(page_path, page_idx, detect_type)
-        all_results.extend(page_results)
-    return all_results
+        # Get results
+        res, id, tid = process_image(page_path, page_idx, detect_type)
+        results.extend(res)
+        ids.extend(id)
+        table_ids.extend(tid)
+    return results, ids, table_ids
 
 
 def process_file(file_path, detect_type=2, s3_key=""):
@@ -140,9 +145,9 @@ def process_file(file_path, detect_type=2, s3_key=""):
     logger.info(f"Processing file: {file_path} from {'local' if not s3_key else 'S3'}...")
     filename = os.path.basename(file_path)
     name, ext = os.path.splitext(filename)
-    title, results = "", []
+    title, file_result = "", [], []
     if ext.lower() in ['.png', '.jpg', '.jpeg']:
-        results = process_image(file_path, 0, detect_type)
+        file_result = process_image(file_path, 0, detect_type)
         first_page = cv2.imread(file_path)
         title = ocr_model.ocr_title(first_page)
         if s3_key:
@@ -154,13 +159,13 @@ def process_file(file_path, detect_type=2, s3_key=""):
         os.makedirs(output_dir, exist_ok=True)
 
         # Process
-        results = process_pdf(file_path, output_dir, detect_type)
+        file_result = process_pdf(file_path, output_dir, detect_type)
         first_page = cv2.imread(os.path.join(output_dir, "page_0.png"))
         title = ocr_model.ocr_title(first_page)
         if s3_key:
             avatar_key = os.path.join(os.path.dirname(s3_key), f"{filename}_avatar.png")
             upload_key = WClient.upload_file(file_path, avatar_key)
-        # Clean output dir local
+    # Clean output dir local
         for f in os.listdir(output_dir):
             os.remove(os.path.join(output_dir, f))
         os.rmdir(output_dir)
@@ -171,14 +176,19 @@ def process_file(file_path, detect_type=2, s3_key=""):
         logger.info(f"Uploaded avatar to {upload_key}")
         return {
             "file_name": filename,
-            "title": title,
-            "content": results,
+            "title": '\n'.join(title),
+            "content": file_result[0],
+            "ids": file_result[1],
+            "table_ids": file_result[2],
             "s3_path": s3_key,
-            "avatar": upload_key
+            "avatar": upload_key,
+            "ext": ext.lower(),
         }
     else:
         return {
             "file_name": filename,
-            "title": title,
-            "content": results,
+            "title": '\n'.join(title),
+            "content": file_result[0],
+            "ids": file_result[1],
+            "table_ids": file_result[2],
         }
