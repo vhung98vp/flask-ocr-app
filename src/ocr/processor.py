@@ -176,7 +176,7 @@ def process_file(file_path, detect_type=2, s3_key=""):
         logger.info(f"Uploaded avatar to {upload_key}")
         return {
             "file_name": filename,
-            "title": '\n'.join(title),
+            "title": title,
             "content": file_result[0],
             "ids": file_result[1],
             "table_ids": file_result[2],
@@ -187,7 +187,7 @@ def process_file(file_path, detect_type=2, s3_key=""):
     else:
         return {
             "file_name": filename,
-            "title": '\n'.join(title),
+            "title": title,
             "content": file_result[0],
             "ids": file_result[1],
             "table_ids": file_result[2],
