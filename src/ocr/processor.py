@@ -182,7 +182,6 @@ def process_file(file_path, detect_type=2, s3_key=""):
             "table_ids": file_result[2],
             "s3_path": s3_key,
             "avatar": upload_key,
-            "ext": ext.lower(),
         }
     else:
         return {
