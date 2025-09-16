@@ -145,7 +145,7 @@ def process_file(file_path, detect_type=2, s3_key=""):
     logger.info(f"Processing file: {file_path} from {'local' if not s3_key else 'S3'}...")
     filename = os.path.basename(file_path)
     name, ext = os.path.splitext(filename)
-    title, file_result = "", [], []
+    title, file_result = "", []
     if ext.lower() in ['.png', '.jpg', '.jpeg']:
         file_result = process_image(file_path, 0, detect_type)
         first_page = cv2.imread(file_path)
