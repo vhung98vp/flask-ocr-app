@@ -4,8 +4,7 @@ import time
 import numpy as np
 from pdf2image import convert_from_path
 from .model import OCRModel
-from .utils import get_lines_from_thresh, get_table_grid, get_table_ids
-from .pattern import filter_ids
+from .utils import get_lines_from_thresh, get_table_grid, content_to_text
 from s3 import WClient
 from config import get_logger
 logger = get_logger(__name__)
@@ -83,7 +82,7 @@ def process_image(img_path, page_idx, detect_type):
         return [{
             "page": page_idx,
             "text": text
-        }], filter_ids(text), []
+        }]
 
     # Detect tables
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -95,17 +94,13 @@ def process_image(img_path, page_idx, detect_type):
     horizontal, vertical = get_lines_from_thresh(thresh, split_ratio=15)
     mask = cv2.add(horizontal, vertical)
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    results, ids, table_ids = [], [], []
+    results = []
     table_idx = 0
     for cnt in contours:
         result = process_contour(cnt, img, page_idx, table_idx)
         if result:
             results.append(result)
             table_idx += 1
-            # Add detected ids in table
-            tid = get_table_ids(result['cells'])
-            table_ids.extend(tid)
-            ids.extend([i for row in tid for i in row if i])
     
     # Detect text outside tables
     if detect_type == 2:
@@ -120,24 +115,21 @@ def process_image(img_path, page_idx, detect_type):
             "page": page_idx,
             "text": text
         })
-        ids.extend(filter_ids(text))
     
     logger.info(f"Total processing time for image {img_path} (s): {time.time()-start:.2f}")
-    return results, ids, table_ids
+    return results
 
 
 def process_pdf(pdf_path, output_dir, detect_type):
     pages = convert_from_path(pdf_path, dpi=300)
-    results, ids, table_ids = [], [], []
+    results = []
     for page_idx, page in enumerate(pages):
         page_path = os.path.join(output_dir, f"page_{page_idx}.png")
         page.save(page_path, "PNG")
         # Get results
-        res, id, tid = process_image(page_path, page_idx, detect_type)
+        res = process_image(page_path, page_idx, detect_type)
         results.extend(res)
-        ids.extend(id)
-        table_ids.extend(tid)
-    return results, ids, table_ids
+    return results
 
 
 def process_file(file_path, detect_type=2, s3_key=""):
@@ -145,9 +137,9 @@ def process_file(file_path, detect_type=2, s3_key=""):
     logger.info(f"Processing file: {file_path} from {'local' if not s3_key else 'S3'}...")
     filename = os.path.basename(file_path)
     name, ext = os.path.splitext(filename)
-    title, file_result = "", []
+    title, file_content = "", []
     if ext.lower() in ['.png', '.jpg', '.jpeg']:
-        file_result = process_image(file_path, 0, detect_type)
+        file_content = process_image(file_path, 0, detect_type)
         first_page = cv2.imread(file_path)
         title = ocr_model.ocr_title(first_page)
         if s3_key:
@@ -159,7 +151,7 @@ def process_file(file_path, detect_type=2, s3_key=""):
         os.makedirs(output_dir, exist_ok=True)
 
         # Process
-        file_result = process_pdf(file_path, output_dir, detect_type)
+        file_content = process_pdf(file_path, output_dir, detect_type)
         first_page = cv2.imread(os.path.join(output_dir, "page_0.png"))
         title = ocr_model.ocr_title(first_page)
         if s3_key:
@@ -172,12 +164,14 @@ def process_file(file_path, detect_type=2, s3_key=""):
     else:
         logger.error(f"Unsupported file type: {file_path}")
 
+    file_result = content_to_text(file_content)
     if s3_key:
         logger.info(f"Uploaded avatar to {upload_key}")
         return {
             "file_name": filename,
             "title": title,
-            "content": file_result[0],
+            "content": file_content,
+            "full_text": file_result[0],
             "ids": file_result[1],
             "table_ids": file_result[2],
             "s3_path": s3_key,
@@ -187,7 +181,8 @@ def process_file(file_path, detect_type=2, s3_key=""):
         return {
             "file_name": filename,
             "title": title,
-            "content": file_result[0],
+            "content": file_content,
+            "full_text": file_result[0],
             "ids": file_result[1],
             "table_ids": file_result[2],
         }
