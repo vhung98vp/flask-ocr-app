@@ -74,7 +74,7 @@ def content_to_text(content):
     table_ids = []
     for item in content:
         if 'cells' in item:
-            texts.append('\n'.join(['\t'.join(row) for row in item['cells']]))
+            texts.append('\n'.join([' | '.join(row) for row in item['cells']]))
             tid = get_table_ids(item['cells'])
             table_ids.append(tid)
             ids.extend([i for row in tid for i in row if i])
