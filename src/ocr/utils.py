@@ -76,10 +76,10 @@ def content_to_text(content):
         if 'cells' in item:
             texts.append('\n'.join([' | '.join(row) for row in item['cells']]))
             tid = get_table_ids(item['cells'])
-            table_ids.append(tid)
+            table_ids.extend(tid)
             ids.extend([i for row in tid for i in row if i])
         else:
-            texts.append(item.get('text', ''))
+            texts.append("\n".join(item.get('text', '')))
             ids.extend(filter_ids(item.get('text', '')))
     full_text = '\n'.join(texts)
     ids = list(set(ids))
