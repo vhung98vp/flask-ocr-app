@@ -9,7 +9,7 @@ from .utils import get_boxed_image
 
 
 def vietocr_predictor():
-    config = Cfg.load_config_from_name('vgg_transformer')
+    config = Cfg.load_config_from_file('./models/vietocr/config.yml')
     config['device'] = 'cpu'
     return Predictor(config)
 
