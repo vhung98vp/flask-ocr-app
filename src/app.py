@@ -48,6 +48,6 @@ def upload_file():
 
 if __name__ == '__main__':
     if APP['mode'] == 'api':
-        app.run(port=APP['port'])
+        app.run(host=APP['host'], port=APP['port'])
     else:
         start_kafka_consumer()
