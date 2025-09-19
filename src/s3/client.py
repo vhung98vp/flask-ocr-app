@@ -11,7 +11,7 @@ class S3Client:
             endpoint_url=conf.get('endpoint'),
             aws_access_key_id=conf.get('access_key'),
             aws_secret_access_key=conf.get('secret_key'),
-            config=Config(signature_version='s3v4', s3={'addressing_style': 'path'}),
+            config=Config(signature_version='s3v4', s3={"addressing_style": "path", "payload_signing_enabled": True}),
             verify=False
         )
         self.bucket_name = conf.get('bucket_name')
@@ -47,8 +47,10 @@ class S3Client:
     def upload_file(self, local_path, file_key):
         try:
             upload_key = os.path.join(self.upload_folder, file_key)
-            with open(local_path, 'rb') as f:
-                self.s3.upload_fileobj(f, self.bucket_name, upload_key)
+            self.s3.upload_file(local_path, self.bucket_name, upload_key)
             return f"s3://{self.bucket_name}/{upload_key}"
+            # with open(local_path, 'rb') as f:
+            #     self.s3.upload_fileobj(f, self.bucket_name, upload_key)
+            # return f"s3://{self.bucket_name}/{upload_key}"
         except Exception as e:
             raise Exception(f"Error uploading file to {upload_key} in S3.") from e
