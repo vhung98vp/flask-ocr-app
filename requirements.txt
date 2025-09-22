@@ -3,7 +3,7 @@ numpy==2.2.6
 pillow==10.2.0
 pdf2image==1.17.0
 paddleocr==2.10.0
-paddlepaddle==2.6.2
+paddlepaddle-gpu==2.6.2
 vietocr==0.3.13
 Flask==3.1.2
 Werkzeug==3.1.3

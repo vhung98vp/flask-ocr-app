@@ -10,13 +10,13 @@ from .utils import get_boxed_image
 
 def vietocr_predictor():
     config = Cfg.load_config_from_file('./models/vietocr/config.yml')
-    config['device'] = 'cpu'
+    config['device'] = 'cuda'
     return Predictor(config)
 
 
 class OCRModel:
     def __init__(self):
-        self.paddle_ocr = PaddleOCR(use_angle_cls=True, lang='en')
+        self.paddle_ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=True)
         self.viet_ocr = vietocr_predictor()
 
     def vietocr_text(self, img):
