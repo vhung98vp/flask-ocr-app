@@ -31,9 +31,9 @@ class S3Client:
                 return [obj['Key'] for obj in response['Contents']]
             return []
         except (NoCredentialsError, PartialCredentialsError) as e:
-            raise Exception("AWS credentials not found or incomplete.") from e
+            raise Exception(f"AWS credentials not found or incomplete: {e}")
         except Exception as e:
-            raise Exception("Error listing files in S3 bucket.") from e
+            raise Exception(f"Error listing files in S3 bucket: {e}")
 
     def download_file(self, file_key):
         try:
@@ -42,7 +42,7 @@ class S3Client:
                 self.s3.download_fileobj(self.bucket_name, file_key, f)
             return download_path
         except Exception as e:
-            raise Exception(f"Error downloading file {file_key} from S3.") from e
+            raise Exception(f"Error downloading file {file_key} from S3: {e}")
 
     def upload_file(self, local_path, file_key):
         try:
@@ -53,4 +53,4 @@ class S3Client:
             #     self.s3.upload_fileobj(f, self.bucket_name, upload_key)
             # return f"s3://{self.bucket_name}/{upload_key}"
         except Exception as e:
-            raise Exception(f"Error uploading file to {upload_key} in S3.") from e
+            raise Exception(f"Error uploading file to {upload_key} in S3: {e}")
