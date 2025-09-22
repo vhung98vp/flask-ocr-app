@@ -9,7 +9,7 @@ from .utils import get_boxed_image
 
 
 def vietocr_predictor():
-    config = Cfg.load_config_from_name('vgg_transformer')
+    config = Cfg.load_config_from_file('./models/vietocr/config.yml')
     config['device'] = 'cpu'
     return Predictor(config)
 
@@ -76,4 +76,5 @@ class OCRModel:
             )
         )[:3]
         best.sort(key=lambda x: x[3])
-        return [c[4].strip() for c in best]
+        result = [c[4].strip() for c in best]
+        return '\n'.join(result)

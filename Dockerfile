@@ -30,6 +30,7 @@ RUN mkdir -p /root/.paddleocr/whl/cls/ch_ppocr_mobile_v2.0_cls_infer && \
 paddleocr.download_with_progressbar('https://paddleocr.bj.bcebos.com/dygraph_v2.0/ch/ch_ppocr_mobile_v2.0_cls_infer.tar', \
 '/root/.paddleocr/whl/cls/ch_ppocr_mobile_v2.0_cls_infer/ch_ppocr_mobile_v2.0_cls_infer.tar')"
 
+COPY vgg_transformer.pth /app/models/vietocr/
 COPY /src /app
 WORKDIR /app
 

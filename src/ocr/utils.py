@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from .pattern import filter_id
+from .pattern import filter_id, filter_ids
 
 
 ### UTILS ###
@@ -68,3 +68,19 @@ def get_table_grid(table_bin, split_ratio=30):
     
     return h_lines, v_lines
 
+def content_to_text(content):
+    texts = []
+    ids = []
+    table_ids = []
+    for item in content:
+        if 'cells' in item:
+            texts.append('\n'.join(['|'.join(row) for row in item['cells']]))
+            tid = get_table_ids(item['cells'])
+            table_ids.extend(tid)
+            ids.extend([i for row in tid for i in row if i])
+        else:
+            texts.append("\n".join(item.get('text', '')))
+            ids.extend(filter_ids(item.get('text', '')))
+    full_text = '\n'.join(texts)
+    ids = list(set(ids))
+    return full_text, ids, table_ids

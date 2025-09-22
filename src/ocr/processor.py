@@ -1,11 +1,11 @@
 import os
 import cv2
 import time
+import uuid
 import numpy as np
 from pdf2image import convert_from_path
 from .model import OCRModel
-from .utils import get_lines_from_thresh, get_table_grid, get_table_ids
-from .pattern import filter_ids
+from .utils import get_lines_from_thresh, get_table_grid, content_to_text
 from s3 import WClient
 from config import get_logger
 logger = get_logger(__name__)
@@ -67,10 +67,9 @@ def process_contour(cnt, img, page_idx, table_idx):
     return {
         "page": page_idx,
         "table": table_idx,
-        "header": header_text,
-        "footer": footer_text,
-        "cells": cell_info,
-        "ids": get_table_ids(cell_info)
+        "header": '\n'.join(header_text),
+        "footer": '\n'.join(footer_text),
+        "cells": cell_info
     }
 
 
@@ -83,8 +82,7 @@ def process_image(img_path, page_idx, detect_type):
         logger.info(f"Total processing time for image {img_path} (s): {time.time()-start:.2f}")
         return [{
             "page": page_idx,
-            "text": text,
-            "ids": filter_ids(text)
+            "text": text
         }]
 
     # Detect tables
@@ -116,8 +114,7 @@ def process_image(img_path, page_idx, detect_type):
 
         results.append({
             "page": page_idx,
-            "text": text,
-            "ids": filter_ids(text)
+            "text": text
         })
     
     logger.info(f"Total processing time for image {img_path} (s): {time.time()-start:.2f}")
@@ -126,59 +123,84 @@ def process_image(img_path, page_idx, detect_type):
 
 def process_pdf(pdf_path, output_dir, detect_type):
     pages = convert_from_path(pdf_path, dpi=300)
-    all_results = []
+    results = []
     for page_idx, page in enumerate(pages):
         page_path = os.path.join(output_dir, f"page_{page_idx}.png")
         page.save(page_path, "PNG")
-        page_results = process_image(page_path, page_idx, detect_type)
-        all_results.extend(page_results)
-    return all_results
+        # Get results
+        res = process_image(page_path, page_idx, detect_type)
+        results.extend(res)
+    return results
+
+
+def upload_avatar(file_path, filename, doc_id):
+    try:
+        avatar_key = os.path.join(doc_id, f"{filename}_avatar.png")
+        upload_key = WClient.upload_file(file_path, avatar_key)
+        logger.info(f"Uploaded avatar to {upload_key}")
+        return upload_key
+    except Exception as e:
+        logger.error(f"Error uploading avatar for {file_path}: {e}")
+        return None
 
 
 def process_file(file_path, detect_type=2, s3_key=""):
     # 0, no table detection; 1, detect tables only; 2, detect tables and text
     logger.info(f"Processing file: {file_path} from {'local' if not s3_key else 'S3'}...")
     filename = os.path.basename(file_path)
-    name, ext = os.path.splitext(filename)
-    title, results = "", []
-    if ext.lower() in ['.png', '.jpg', '.jpeg']:
-        results = process_image(file_path, 0, detect_type)
-        first_page = cv2.imread(file_path)
-        title = ocr_model.ocr_title(first_page)
+    _, ext = os.path.splitext(filename)
+    ext = ext.lower()
+    file_content, title, avatar_key = [], "", ""
+    output_dir = None
+    doc_id = str(uuid.uuid4())
+
+    try:
+        if ext in ['.png', '.jpg', '.jpeg']:
+            file_content = process_image(file_path, 0, detect_type)
+            title = ocr_model.ocr_title(cv2.imread(file_path))
+            if s3_key:
+                avatar_key = upload_avatar(file_path, filename, doc_id)
+
+        elif ext == '.pdf':
+            # Make output dir
+            output_dir = os.path.join(os.path.dirname(file_path), f"output_{filename}")
+            os.makedirs(output_dir, exist_ok=True)
+
+            # Process
+            file_content = process_pdf(file_path, output_dir, detect_type)
+            first_page_path = os.path.join(output_dir, "page_0.png")
+            title = ocr_model.ocr_title(cv2.imread(first_page_path))
+            if s3_key:
+                avatar_key = upload_avatar(first_page_path, filename, doc_id)
+        else:
+            logger.error(f"Unsupported file type: {file_path}")
+            return None
+    
+        full_text, ids, table_ids = content_to_text(file_content)
+        result = {
+                "file_name": filename,
+                "title": title,
+                "content": file_content,
+                "full_text": full_text,
+                "ids": ids,
+                "table_ids": table_ids,
+            }
+        
         if s3_key:
-            upload_key = WClient.upload_file(file_path, s3_key)
+            result.update({
+                "_fs_internal_id": doc_id,
+                "s3_path": s3_key,
+                "avatar": avatar_key,
+            }) 
 
-    elif ext.lower() == '.pdf':
-        # Make output dir
-        output_dir = os.path.join(os.path.dirname(file_path), f"output_{filename}")
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Process
-        results = process_pdf(file_path, output_dir, detect_type)
-        first_page = cv2.imread(os.path.join(output_dir, "page_0.png"))
-        title = ocr_model.ocr_title(first_page)
-        if s3_key:
-            avatar_key = os.path.join(os.path.dirname(s3_key), f"{filename}_avatar.png")
-            upload_key = WClient.upload_file(file_path, avatar_key)
-        # Clean output dir local
-        for f in os.listdir(output_dir):
-            os.remove(os.path.join(output_dir, f))
-        os.rmdir(output_dir)
-    else:
-        logger.error(f"Unsupported file type: {file_path}")
-
-    if s3_key:
-        logger.info(f"Uploaded avatar to {upload_key}")
-        return {
-            "file_name": filename,
-            "title": title,
-            "content": results,
-            "s3_path": s3_key,
-            "avatar": upload_key
-        }
-    else:
-        return {
-            "file_name": filename,
-            "title": title,
-            "content": results,
-        }
+        return result
+    finally:
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            if output_dir and os.path.exists(output_dir):
+                for f in os.listdir(output_dir):
+                    os.remove(os.path.join(output_dir, f))
+                os.rmdir(output_dir)
+        except Exception as e:
+            logger.warning(f"Error cleaning up temporary files: {e}")

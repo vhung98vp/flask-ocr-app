@@ -19,8 +19,6 @@ def process_s3_file(key, detect_type, folder=None):
     if folder: 
         result['folder'] = folder
     send_output_to_kafka(result)
-    if os.path.exists(local_file_path):
-        os.remove(local_file_path)
 
 
 def process_message(msg_key, msg):
