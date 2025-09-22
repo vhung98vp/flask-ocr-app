@@ -7,8 +7,8 @@ paddlepaddle==2.6.2
 vietocr==0.3.13
 Flask==3.1.2
 Werkzeug==3.1.3
-boto3==1.40.23
-botocore==1.40.23
+boto3==1.33.13
+botocore==1.33.13
 confluent-kafka==2.10.0
 python-dotenv==1.1.0
 requests==2.32.5
