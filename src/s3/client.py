@@ -11,7 +11,7 @@ class S3Client:
             endpoint_url=conf.get('endpoint'),
             aws_access_key_id=conf.get('access_key'),
             aws_secret_access_key=conf.get('secret_key'),
-            config=Config(signature_version='s3v4', s3={"addressing_style": "path", "payload_signing_enabled": True}),
+            config=Config(signature_version='s3v4', s3={"addressing_style": "path"}),
             verify=False
         )
         self.bucket_name = conf.get('bucket_name')
