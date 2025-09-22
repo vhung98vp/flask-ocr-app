@@ -28,7 +28,8 @@ class S3Client:
         try:
             response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix)
             if 'Contents' in response:
-                return [obj['Key'] for obj in response['Contents']]
+                return [obj['Key'] for obj in response['Contents']
+                        if obj['Key'] != prefix and not obj['Key'].endswith('/')]
             return []
         except (NoCredentialsError, PartialCredentialsError) as e:
             raise Exception(f"AWS credentials not found or incomplete: {e}")
