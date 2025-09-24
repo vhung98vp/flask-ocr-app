@@ -7,7 +7,7 @@ from pdf2image import convert_from_path
 from .model import OCRModel
 from .utils import get_lines_from_thresh, get_table_grid, content_to_text
 from s3 import WClient
-from config import get_logger
+from config import get_logger, KAFKA
 logger = get_logger(__name__)
 
 
@@ -188,7 +188,7 @@ def process_file(file_path, detect_type=2, s3_key=""):
         
         if s3_key:
             result.update({
-                "_fs_internal_id": doc_id,
+                KAFKA["doc_id_key"]: doc_id,
                 "s3_path": s3_key,
                 "avatar": avatar_key,
             }) 

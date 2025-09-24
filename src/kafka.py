@@ -14,11 +14,16 @@ consumer = Consumer(KAFKA_CONSUMER_CONFIG)
 consumer.subscribe([KAFKA['input_topic']])
 
 def process_s3_file(key, detect_type, folder=None):
-    local_file_path = RClient.download_file(key)
-    result = process_file(local_file_path, detect_type, key)
-    if folder: 
-        result['folder'] = folder
-    send_output_to_kafka(result)
+    try:
+        local_file_path = RClient.download_file(key)
+        result = process_file(local_file_path, detect_type, key)
+        if folder: 
+            result['folder'] = folder
+        send_output_to_kafka(result)
+        return result[KAFKA["doc_id_key"]]
+    except Exception as e:
+        logger.error(f"Got error while processing file {key}")
+        return None
 
 
 def process_message(msg_key, msg):
@@ -31,10 +36,15 @@ def process_message(msg_key, msg):
         if detect_type not in ['0', '1', '2']:
             raise ValueError(f"Invalid input type: {data}")
         if folder:
+            processed = []
             file_keys = RClient.list_files(folder)
             for file_key in file_keys:
-                process_s3_file(file_key, int(detect_type), folder)
-            logger.info(f"Processed data for folder: {folder}.")
+                file_id = process_s3_file(file_key, int(detect_type), folder)
+                if file_id:
+                    processed.append(file_id)
+            if processed:
+                send_output_to_kafka({"folder": folder, "processed_files": processed}, KAFKA["complete_topic"])
+                logger.info(f"Processed data for folder: {folder}.")
         elif file_key:
             process_s3_file(file_key, int(detect_type))
             logger.info(f"Processed data for file: {file_key}.")
@@ -85,9 +95,9 @@ def start_kafka_consumer():
         logger.info(f"Processed {processed_count} messages with {error_count} errors.")
 
 
-def send_output_to_kafka(result):
+def send_output_to_kafka(result, topic=KAFKA['output_topic']):
     try:
-        producer.produce(KAFKA['output_topic'], key=str(uuid.uuid4()), value=json.dumps(result, ensure_ascii=False))
+        producer.produce(topic, key=str(uuid.uuid4()), value=json.dumps(result, ensure_ascii=False))
         producer.poll(0)
     except Exception as e:
         logger.exception(f"Error sending result to output topic: {e}")
