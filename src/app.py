@@ -38,6 +38,7 @@ def upload_file():
         file.save(file_path)
         result = process_file(file_path, int(detect_type))
     except Exception as e:
+        logger.exception(f"Error processing file {file_path}: {e}")
         return jsonify({'error': str(e)}), 500
     finally: # Clean file
         if os.path.exists(file_path):

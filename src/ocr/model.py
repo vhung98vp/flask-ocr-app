@@ -16,7 +16,10 @@ def vietocr_predictor():
 
 class OCRModel:
     def __init__(self):
-        self.paddle_ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=True)
+        self.paddle_ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=True, 
+            det_model_dir="./models/paddleocr/det/en/en_PP-OCRv3_det_infer",
+            rec_model_dir="./models/paddleocr/rec/en/en_PP-OCRv3_rec_infer",
+            cls_model_dir="./models/paddleocr/cls/ch_ppocr_mobile_v2.0_cls_infer",)
         self.viet_ocr = vietocr_predictor()
 
     def vietocr_text(self, img):
@@ -26,8 +29,8 @@ class OCRModel:
     
     def ocr_text_area(self, ocr_area, n_rows=3, reverse=True):
         # Use PaddleOCR to detect text boxes in ocr_area
-        ocr_result = self.paddle_ocr.ocr(ocr_area, cls=True, rec=False)
-        boxes = ocr_result[0] if ocr_result else []
+        boxes = self.paddle_ocr.ocr(ocr_area, cls=True, rec=False)
+        # boxes = ocr_result[0] if ocr_result else []
         if not boxes:
             return []
         
@@ -46,8 +49,8 @@ class OCRModel:
     def ocr_title(self, img, area_height=0.25):
         h, w = img.shape[:2]
         ocr_area = img[0:int(h*area_height), 0:w]
-        ocr_result = self.paddle_ocr.ocr(ocr_area, cls=True, rec=False)
-        boxes = ocr_result[0] if ocr_result else []
+        boxes = self.paddle_ocr.ocr(ocr_area, cls=True, rec=False)
+        # boxes = ocr_result[0] if ocr_result else []
 
         candidates = []
         for box in boxes:
@@ -70,9 +73,9 @@ class OCRModel:
         best = sorted(
             candidates,
             key=lambda c: (
-                (1 - c[0]) * 0.25     # prefer uppercase (1=upper → score 0, else penalty)
-                + (1 - (c[1] / max_height)) * 0.25  # prefer taller boxes
-                + c[2] * 0.5         # prefer closer to center
+                (1 - c[0]) * 0.1     # prefer uppercase (1=upper → score 0, else penalty)
+                + (1 - (c[1] / max_height)) * 0.1  # prefer taller boxes
+                + c[2] * 0.8         # prefer closer to center
             )
         )[:3]
         best.sort(key=lambda x: x[3])

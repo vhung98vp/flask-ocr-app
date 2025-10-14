@@ -31,7 +31,7 @@ def filter_id(value):
 
 
 def filter_ids(values):
-    return [x for val in values if (x := filter_id(val))]
+    return [x for val in values for x in [filter_id(val)] if x]
 
 
 def classify_ids(values):
