@@ -73,8 +73,8 @@ class OCRModel:
         best = sorted(
             candidates,
             key=lambda c: (
-                (1 - c[0]) * 0.1     # prefer uppercase (1=upper → score 0, else penalty)
-                + (1 - (c[1] / max_height)) * 0.1  # prefer taller boxes
+                - c[0] * 0.1     # prefer uppercase (1=upper → score 0, else penalty)
+                - (c[1] / max_height) * 0.1  # prefer taller boxes
                 + c[2] * 0.8         # prefer closer to center
             )
         )[:3]

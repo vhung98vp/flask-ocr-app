@@ -47,7 +47,7 @@ def process_message(msg_key, msg):
             "error": str(e), 
             "message": msg 
         })
-        raise e
+        # raise e
     finally:
         logger.info(f"Processed message {msg_key} in {time.time() - start_time:.4f} seconds")
 
