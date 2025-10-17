@@ -1,9 +1,13 @@
 import cv2
 import numpy as np
+import uuid
 from .pattern import filter_id, filter_ids
-
+from config import KAFKA
 
 ### UTILS ###
+def build_doc_uid(s3_key, entity_type=KAFKA['doc_entity_type'], namespace=KAFKA['namespace_uuid']):
+    return str(uuid.uuid5(namespace, f"{entity_type}:{s3_key}"))
+
 def get_table_ids(cell_info):
     table = [[filter_id(text) if text else "" for text in row] for row in cell_info]
     cols_with_text = {j for i, row in enumerate(table) for j, text in enumerate(row) if text != ""}

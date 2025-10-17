@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import uuid
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,7 +31,9 @@ KAFKA = {
     'output_topic': os.environ.get('KAFKA_OUTPUT_TOPIC'),
     'error_topic': os.environ.get('KAFKA_ERROR_TOPIC'),
     'complete_topic': os.environ.get('KAFKA_COMPLETE_TOPIC'),
-    'doc_id_key': os.environ.get('KAFKA_DOC_ID_FIELD', '_fs_internal_id')
+    'doc_id_key': os.environ.get('KAFKA_DOC_ID_FIELD', '_fs_internal_id'),
+    'doc_entity_type': os.environ.get('KAFKA_DOC_ENTITY_TYPE', 'fs.entity.Document'),
+    'namespace_uuid': uuid.UUID(os.environ.get('KAFKA_NAMESPACE_UUID', "6ba7b810-9dad-11d1-80b4-00c04fd430c8"))
 }
 
 KAFKA_CONSUMER_CONFIG = {

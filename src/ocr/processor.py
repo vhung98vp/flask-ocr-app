@@ -1,11 +1,10 @@
 import os
 import cv2
 import time
-import uuid
 import numpy as np
 from pdf2image import convert_from_path
 from .model import OCRModel
-from .utils import get_lines_from_thresh, get_table_grid, content_to_text
+from .utils import get_lines_from_thresh, get_table_grid, content_to_text, build_doc_uid
 from s3 import WClient
 from config import get_logger, KAFKA
 logger = get_logger(__name__)
@@ -152,7 +151,7 @@ def process_file(file_path, detect_type=2, s3_key=""):
     ext = ext.lower()
     file_content, title, avatar_key = [], "", ""
     output_dir = None
-    doc_id = str(uuid.uuid4())
+    doc_id = build_doc_uid(s3_key)
 
     try:
         if ext in ['.png', '.jpg', '.jpeg']:
