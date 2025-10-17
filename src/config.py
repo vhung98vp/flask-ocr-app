@@ -28,7 +28,9 @@ KAFKA = {
     'auto_offset_reset': os.environ.get('KAFKA_AUTO_OFFSET_RESET', 'earliest'),
     'input_topic': os.environ.get('KAFKA_INPUT_TOPIC'),
     'output_topic': os.environ.get('KAFKA_OUTPUT_TOPIC'),
-    'error_topic': os.environ.get('KAFKA_ERROR_TOPIC')
+    'error_topic': os.environ.get('KAFKA_ERROR_TOPIC'),
+    'complete_topic': os.environ.get('KAFKA_COMPLETE_TOPIC'),
+    'doc_id_key': os.environ.get('KAFKA_DOC_ID_FIELD', '_fs_internal_id')
 }
 
 KAFKA_CONSUMER_CONFIG = {
