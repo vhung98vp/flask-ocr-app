@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libcudnn8-dev=8.2.1.32-1+cuda11.3 \
  && rm -rf /var/lib/apt/lists/*
 
-COPY /src/models /app/models/
+COPY /models /app/models/
 COPY /src /app
 WORKDIR /app
 
